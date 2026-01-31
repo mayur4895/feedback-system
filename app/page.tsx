@@ -128,7 +128,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-gray-800 text-white mt-16">
         <div className="max-w-7xl mx-auto px-4 py-8 text-center">
-          <p>College Feedback System © 2024. All rights reserved.</p>
+          <p>College Feedback System © 2026. All rights reserved.</p>
         </div>
       </footer>
     </div>
