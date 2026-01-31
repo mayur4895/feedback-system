@@ -45,6 +45,15 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
+      <div className="absolute top-4 left-4">
+          <Button
+           variant="ghost"
+            className="cursor-pointer"
+           onClick={() => router.push('/')}
+          >
+           ← Back to Home
+         </Button>
+      </div>
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader>
           <CardTitle className="text-center text-2xl">Register</CardTitle>
