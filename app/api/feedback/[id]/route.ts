@@ -5,9 +5,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+
     const auth = await verifyAuth();
     if (!auth || auth.role !== 'admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -17,9 +19,17 @@ export async function PATCH(
     const { status, adminNotes } = await request.json();
 
     const feedback = await Feedback.findByIdAndUpdate(
-      params.id,
-      { status, adminNotes },
-      { new: true }
+      id,
+      {
+        $set: {
+          status: status.toLowerCase(),
+          adminNotes,
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
     );
 
     if (!feedback) {
@@ -28,6 +38,7 @@ export async function PATCH(
 
     return NextResponse.json(feedback);
   } catch (error) {
+    console.error(error);
     return NextResponse.json(
       { error: 'Failed to update feedback' },
       { status: 500 }
