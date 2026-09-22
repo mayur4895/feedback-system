@@ -57,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(data.user);
   };
 
-  const register = async (name: string, email: string, password: string, role: 'student' | 'admin') => {
+  const register = async (name: string, email: string, password: string, role: 'STUDENT' | 'ADMIN') => {
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
     await connectDB();
     console.log('[v0] Database connected');
 
-    if (auth.role === 'admin') {
+    if (auth.role === 'ADMIN') {
       const feedbacks = await Feedback.find().sort({ createdAt: -1 });
       return NextResponse.json(feedbacks);
     } else {

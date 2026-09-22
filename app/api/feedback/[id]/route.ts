@@ -11,7 +11,7 @@ export async function PATCH(
     const { id } = await params;
 
     const auth = await verifyAuth();
-    if (!auth || auth.role !== 'admin') {
+    if (!auth || auth.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

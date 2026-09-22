@@ -43,11 +43,12 @@ export default function AdminDashboard() {
   const fetchFeedbacks = async () => {
     try {
       const res = await fetch('/api/feedback');
-      if (res.ok) {
+      if (res.ok) { 
         const data = await res.json();
         setFeedbacks(data);
       }
     } catch (err) {
+      console.log(err);
       console.error('Failed to fetch feedback');
     }
   };
