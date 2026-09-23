@@ -46,51 +46,21 @@ interface Feedback {
   adminNotes?: string;
 }
 
-interface StudentSession {
-  studentId: string;
-  studentName: string;
-  studentEmail: string;
-}
-
-/* --------------------------------------------------------------
-   Read student from sessionStorage (set at login).
-   NO fallback — if missing, we can't fetch this student's data.
-   -------------------------------------------------------------- */
-function getStudentFromSession(): StudentSession | null {
-  if (typeof window === 'undefined') return null;
-
-  try {
-    const raw =
-      sessionStorage.getItem('student') ||
-      localStorage.getItem('student') ||
-      localStorage.getItem('user');
-
-    if (!raw) return null;
-
-    const p = JSON.parse(raw);
-    const studentId = String(p.studentId ?? p._id ?? '').trim();
-
-    // Require at least a studentId — otherwise treat as "not logged in"
-    if (!studentId) return null;
-
-    return {
-      studentId,
-      studentName: p.studentName || p.name || '',
-      studentEmail: p.studentEmail || p.email || '',
-    };
-  } catch {
-    return null;
-  }
+interface Me {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
 }
 
 export default function StudentDashboard() {
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
+  const [me, setMe] = useState<Me | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
-  const [student, setStudent] = useState<StudentSession | null>(null);
-  const [sessionChecked, setSessionChecked] = useState(false);
 
   const [formData, setFormData] = useState({
     category: 'teaching',
@@ -99,31 +69,34 @@ export default function StudentDashboard() {
     message: '',
   });
 
-  // Load student ONCE from session
+  // On mount: ask server who we are, then load our feedback
   useEffect(() => {
-    const s = getStudentFromSession();
-    setStudent(s);
-    setSessionChecked(true);
+    (async () => {
+      try {
+        const res = await fetch('/api/auth/me', {
+          cache: 'no-store',
+          credentials: 'include',
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setMe(data.user);
+          await fetchFeedbacks();
+        }
+      } catch (err) {
+        console.error('Auth check failed', err);
+      } finally {
+        setAuthChecked(true);
+      }
+    })();
   }, []);
 
-  // Fetch whenever we know the student
-  useEffect(() => {
-    if (student?.studentId) {
-      fetchFeedbacks();
-    } else {
-      setFeedbacks([]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [student?.studentId]);
-
   const fetchFeedbacks = async () => {
-    if (!student?.studentId) return;
-
     try {
-      const res = await fetch(
-        `/api/feedback?studentId=${encodeURIComponent(student.studentId)}`,
-        { cache: 'no-store' }
-      );
+      const res = await fetch('/api/feedback', {
+        cache: 'no-store',
+        credentials: 'include', // send auth cookie
+      });
 
       if (!res.ok) {
         setFeedbacks([]);
@@ -131,7 +104,6 @@ export default function StudentDashboard() {
       }
 
       const data = await res.json();
-      // Server already filters by studentId — trust it
       setFeedbacks(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Failed to fetch feedback', err);
@@ -141,8 +113,6 @@ export default function StudentDashboard() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!student) return;
-
     setLoading(true);
     setError('');
 
@@ -150,12 +120,10 @@ export default function StudentDashboard() {
       const res = await fetch('/api/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // send auth cookie
         body: JSON.stringify({
           ...formData,
           rating: parseInt(formData.rating),
-          studentId: student.studentId,
-          studentName: student.studentName,
-          studentEmail: student.studentEmail,
         }),
       });
 
@@ -166,7 +134,7 @@ export default function StudentDashboard() {
 
       const created = await res.json().catch(() => null);
 
-      // Optimistic prepend so the count updates instantly
+      // Optimistic prepend
       if (created && created._id) {
         setFeedbacks((prev) => [created, ...prev]);
       }
@@ -175,7 +143,6 @@ export default function StudentDashboard() {
       setSubmitted(true);
       setShowForm(false);
 
-      // Small delay, then refetch to stay in sync with DB
       setTimeout(() => fetchFeedbacks(), 300);
       setTimeout(() => setSubmitted(false), 3000);
     } catch (err: any) {
@@ -185,8 +152,7 @@ export default function StudentDashboard() {
     }
   };
 
-  // Wait until we've checked the session
-  if (!sessionChecked) {
+  if (!authChecked) {
     return (
       <div className="space-y-6">
         <Card className={`rounded-3xl border-0 ${raised}`}>
@@ -198,8 +164,7 @@ export default function StudentDashboard() {
     );
   }
 
-  // No student in session → nothing to show
-  if (!student) {
+  if (!me) {
     return (
       <div className="space-y-6">
         <Card className={`rounded-3xl border-0 ${raised}`}>

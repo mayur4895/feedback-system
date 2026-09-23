@@ -49,12 +49,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     if (!res.ok) {
+      
       const error = await res.json();
       throw new Error(error.error || 'Login failed');
     }
 
     const data = await res.json();
     setUser(data.user);
+
+    sessionStorage.setItem('student', JSON.stringify({
+      studentId: data.user._id,
+      studentName: data.user.name,
+      studentEmail: data.user.email,
+    }));
   };
 
   const register = async (name: string, email: string, password: string, role: 'STUDENT' | 'ADMIN') => {
