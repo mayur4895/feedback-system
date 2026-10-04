@@ -110,7 +110,7 @@ export default function FeedbackList({
                 </span>
               </div>
 
-              {feedback.adminNotes && isAdmin && (
+              {feedback.adminNotes  && (
                 <div className="bg-blue-50 p-3 rounded text-sm">
                   <p className="font-medium text-blue-900">Admin Notes:</p>
                   <p className="text-blue-800 mt-1">{feedback.adminNotes}</p>

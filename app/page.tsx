@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Image from 'next/image';
 
 /* ======================================================================
    Neumorphism tokens
@@ -708,7 +709,7 @@ export default function Home() {
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4">
             <div className="flex items-center gap-3">
               <span className={`flex h-10 w-10 items-center justify-center rounded-full text-lg ${inset}`}>
-                🎓
+               <Image src={'https://www.pdeabgcollege.edu.in/images/logo.jpg'} alt='logo' width={50} height={50}  className='rounded-full'/>
               </span>
               <h1 className="bg-gradient-to-r from-indigo-600 via-violet-600 to-pink-500 bg-clip-text text-xl font-bold text-transparent sm:text-2xl">
                 College Feedback System
